@@ -204,7 +204,7 @@ ggplot(bulbs, aes(x = Type, y = Hours, fill = Type)) +
        x = "Type of bulb", y = "Lifetime (hours)")
 
 ggplot(bulbs, aes(x = Hours, fill = Type)) +
-  geom_histogram(position = "dodge", binwidth = 50) +
+  geom_histogram(position = "dodge", binwidth = 10) +
   labs(title = "Histograms of lightbulb lifetimes",
        x = "Lifetime (hours)", y = "Count")
 ```
@@ -293,12 +293,12 @@ disab
 
 ```{r}
 #| label: Q4cgraph
-ggplot(disab, aes(x = Ethnicity, y = Prop, fill = Ethnicity)) +
+ggplot(disab, aes(x = Prop, y = Ethnicity, fill = Ethnicity)) +
   geom_col() +
-  geom_errorbar(aes(ymin = Prop - SE, ymax = Prop + SE), width = 0.25) +
+  geom_errorbar(aes(xmin = Prop - SE, xmax = Prop + SE), width = 0.15) +
   facet_wrap(vars(Sex)) +
   labs(title = "Proportion deemed disabled by gender and ethnicity (+/- 1 SE)",
-       x = "Ethnicity", y = "Proportion disabled")
+       x = "Proportion disabled", y = "Ethnicity")
 ```
 
 The proportion of people deemed disabled varies across the gender and ethnicity combinations, from 0.055 (Pacific males) up to 0.167 (Pacific females) among the well-sampled groups, with Asian respondents (0.152 for females, 0.158 for males) also above the other groups. The error bars show how much uncertainty there is in each estimate: the large European/Other groups have very small standard errors (about 0.012), while small groups such as Pacific females (n = 42) have standard errors around 0.058. The Gender Diverse combination is based on only n = 2 respondents, so its estimate (0.000) is too small a sample to be reliable and its standard error of 0 should not be taken at face value.
