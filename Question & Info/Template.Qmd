@@ -1,0 +1,111 @@
+---
+title: Assignment 2 for 297.101 Statistical Data Science
+author: change to your name and/or ID number
+date: today
+downloads: [qmd]
+format:
+  html:
+    embed-resources: true
+    code-tools: 
+      source: true
+editor: 
+  mode: source
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(fig.width=7, fig.height=5, fig.path="Figures/")
+knitr::opts_chunk$set(comment="", fig.align="center", tidy=TRUE)
+library(tidyverse)
+```
+
+<!---
+## Instructions
+
+1. Please download this template to the computer you are working on.
+2. Open it in RStudio, and knit it before continuing.
+3. Change the author line above (third line). You must include your ID number, but your name is optional.
+4. OK, just for the sake of being paranoid, knit it again.
+5. If the template file knits, then the data you need for some questions will have been automatically retrieved for you. You will still need to enter some data manually using the details found in your questions file.
+--->
+
+
+
+## Question 1: Faulty  Aircraft Components
+<!--- This question does not use a dataset. 
+Use the numbers given in your questions file. --->
+
+
+```{r}
+#| label: Question1
+
+
+
+```
+
+
+
+
+## Question 2: Space Telescope Reliability
+
+<!--- This question does not use a dataset. 
+Use the numbers given in your questions file. --->
+
+
+```{r}
+#| label: Question2
+
+
+
+```
+
+
+
+## Question 3: Lightbulb Lifetimes
+<!--- This question does not use a dataset. 
+Use the numbers given in your questions file. --->
+
+```{r}
+#| label: Question3
+
+
+
+```
+
+## Question 4: General Social Survey
+
+<!--- The next chunk downloads your data. Do NOT delete or alter this chunk. --->
+```{r}
+#| label: getGSS
+GSS = read.csv("https://R-Resources.massey.ac.nz/data/GSS/GSS26118.csv") 
+GSS |> head()
+```
+
+```{r}
+#| label: Question4
+
+
+
+```
+
+
+
+
+## Question 5: Evaluation of Digital Scales
+
+<!--- The next chunk downloads your data. Do NOT delete or alter this chunk. --->
+```{r}
+#| label: getScales
+Scales = read.csv("https://R-Resources.massey.ac.nz/data/scales/scales26118.csv") |> glimpse()
+```
+
+```{r}
+#| label: Question5
+
+
+
+```
+
+## End of assignment
