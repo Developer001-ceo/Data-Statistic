@@ -1,0 +1,343 @@
+---
+title: Assignment 2 for 297.101 Statistical Data Science
+author: savnit prasad (26019118)
+date: today
+downloads: [qmd]
+format:
+  html:
+    embed-resources: true
+    code-tools: 
+      source: true
+editor: 
+  mode: source
+---
+
+
+```{r}
+#| label: setup
+#| include: false
+knitr::opts_chunk$set(fig.width=7, fig.height=5, fig.path="Figures/")
+knitr::opts_chunk$set(comment="", fig.align="center", tidy=TRUE)
+library(tidyverse)
+```
+
+<!---
+## Instructions
+
+1. Please download this template to the computer you are working on.
+2. Open it in RStudio, and knit it before continuing.
+3. Change the author line above (third line). You must include your ID number, but your name is optional.
+4. OK, just for the sake of being paranoid, knit it again.
+5. If the template file knits, then the data you need for some questions will have been automatically retrieved for you. You will still need to enter some data manually using the details found in your questions file.
+--->
+
+
+
+## Question 1: Faulty  Aircraft Components
+<!--- This question does not use a dataset. 
+Use the numbers given in your questions file. --->
+
+**(a) Construct the full table needed for calculating probabilities, including all row and column totals.**
+
+Of the 246 components made in New Zealand, 195 passed the test, so 246 − 195 = 51 were faulty. Of the 201 components made off-shore, 121 passed the test, so 201 − 121 = 80 were faulty.
+
+```{r}
+#| label: Question1
+NZ_total = 246
+NZ_passed = 195
+OS_total = 201
+OS_passed = 121
+
+components = data.frame(
+  Passed = c(NZ_passed, OS_passed, NZ_passed + OS_passed),
+  Faulty = c(NZ_total - NZ_passed, OS_total - OS_passed,
+             (NZ_total - NZ_passed) + (OS_total - OS_passed)),
+  Total = c(NZ_total, OS_total, NZ_total + OS_total),
+  row.names = c("New Zealand", "Overseas", "Total")
+)
+components
+```
+
+**(b) What is the probability that a randomly selected component is faulty and was made overseas?**
+
+This is a joint probability: the component must be faulty **and** made overseas, out of all 447 components tested.
+
+```{r}
+#| label: Q1b
+OS_faulty = OS_total - OS_passed
+Grand_total = NZ_total + OS_total
+round(OS_faulty / Grand_total, 4)
+```
+
+**P(faulty and overseas) = 80/447 ≈ 0.179.**
+
+**(c) If a randomly selected component is found to be faulty, what is the probability it was made in New Zealand?**
+
+This is a conditional probability: we already know the component is faulty, so we only consider the 131 faulty components, of which 51 were made in New Zealand.
+
+```{r}
+#| label: Q1c
+NZ_faulty = NZ_total - NZ_passed
+round(NZ_faulty / (NZ_faulty + OS_faulty), 4)
+```
+
+**P(New Zealand | faulty) = 51/131 ≈ 0.389.**
+
+**(d) If a randomly selected component is found to be from the New Zealand factory, what is the probability that it was faulty?**
+
+Now the condition is the factory, so we only consider the 246 NZ components, of which 51 were faulty.
+
+```{r}
+#| label: Q1d
+round(NZ_faulty / NZ_total, 4)
+```
+
+**P(faulty | New Zealand) = 51/246 ≈ 0.207.**
+
+**(e) If you could assume the probability that a component was faulty was independent of the probability that it was made in New Zealand, what would the probability be of a randomly selected component being a faulty component produced overseas?**
+
+If being faulty was independent of where it was made, the joint probability would be the product of the two marginal probabilities:
+
+```{r}
+#| label: Q1e
+P_faulty = (NZ_faulty + OS_faulty) / Grand_total
+P_overseas = OS_total / Grand_total
+round(P_faulty * P_overseas, 4)
+```
+
+**P(faulty and overseas) = P(faulty) × P(overseas) = (131/447) × (201/447) ≈ 0.132.**
+
+**(f) Justify why you believe the fault rate of parts is or is not independent of where they were manufactured.**
+
+```{r}
+#| label: Q1f
+round(NZ_faulty / NZ_total, 4)      # P(faulty | made in NZ)
+round(OS_faulty / OS_total, 4)      # P(faulty | made overseas)
+round(OS_faulty / Grand_total, 4)   # actual joint P(faulty and overseas)
+round(P_faulty * P_overseas, 4)     # joint probability if independent
+```
+
+The fault rate is **not** independent of where the component was manufactured. If the two were independent, the probability of a fault would be the same for both factories, but P(faulty | overseas) ≈ 0.398 is nearly double P(faulty | New Zealand) ≈ 0.207. Equivalently, the actual joint probability P(faulty and overseas) ≈ 0.179 is not equal to the independence value P(faulty) × P(overseas) ≈ 0.132. Because knowing where a component was made changes the probability that it is faulty, the two events are dependent.
+
+
+
+## Question 2: Space Telescope Reliability
+
+<!--- This question does not use a dataset. 
+Use the numbers given in your questions file. --->
+
+The probability that a single mirror is still fully functional after $t$ years is $R(t) = \exp\left(-(t/8.7)^{3.9}\right)$. The three mirrors are assumed to fail independently of one another.
+
+**(a) All mirrors must be working to take the most detailed photographs. What is the probability that the telescope can produce these types of pictures for at least 5 years?**
+
+All three mirrors must still be working after 5 years, so the system survives only if every mirror survives (a "series" system). By independence, P(all 3 survive) = R(5) × R(5) × R(5) = R(5)³.
+
+```{r}
+#| label: Question2
+R5 = exp(-(5 / 8.7)^3.9)
+R5
+round(R5^3, 4)
+```
+
+R(5) ≈ 0.8911, so the probability of taking the most detailed photographs for at least 5 years is 0.8911³ ≈ **0.708**.
+
+**(b) The lowest resolution photographs can be taken as long as at least one mirror is working. What is the probability that these photographs can be taken for at least 7 years?**
+
+At least one of the three mirrors must survive 7 years. It is easier to use the complement: the photographs fail only if all three mirrors have failed by 7 years, each with probability 1 − R(7). So P(at least one working) = 1 − (1 − R(7))³.
+
+```{r}
+#| label: Q2b
+R7 = exp(-(7 / 8.7)^3.9)
+R7
+round(1 - (1 - R7)^3, 4)
+```
+
+R(7) ≈ 0.6516, so the probability that the lowest resolution photographs can be taken for at least 7 years is 1 − (1 − 0.6516)³ ≈ **0.958**.
+
+**(c) The most common photographs the telescope will be taking are of medium resolution. This is possible as long as at least two mirrors are working. What is the probability that this remains possible for at least 4 years?**
+
+"At least two working" means exactly two working or all three working after 4 years. With three independent mirrors there are 3 ways to choose the two survivors, so P(at least 2 working) = 3 × R(4)² × (1 − R(4)) + R(4)³.
+
+```{r}
+#| label: Q2c
+R4 = exp(-(4 / 8.7)^3.9)
+R4
+round(3 * R4^2 * (1 - R4) + R4^3, 4)
+```
+
+R(4) ≈ 0.9529, so the probability that medium resolution photographs remain possible for at least 4 years is 3 × 0.9529² × 0.0471 + 0.9529³ ≈ **0.993**.
+
+
+
+## Question 3: Lightbulb Lifetimes
+<!--- This question does not use a dataset. 
+Use the numbers given in your questions file. --->
+
+```{r}
+#| label: Question3
+SampleA = c(970.89, 955.34, 957.06, 966.99, 953.54, 960.19,
+            953.51, 927.55, 947.53, 965.18, 930.49, 941.41,
+            953.54, 959.32, 950.3)
+SampleB = c(1939.26, 1922.46, 1929.52, 1966.84, 1936.81, 1921.65,
+            1932.73, 1938.36, 1944.67, 1958.51, 1942.52, 1939.89,
+            1927.25, 1970.89, 1962.14)
+
+bulbs = data.frame(
+  Hours = c(SampleA, SampleB),
+  Type = rep(c("Sample A", "Sample B"), each = 15)
+)
+
+bulbs |> group_by(Type) |>
+  summarise(Mean = mean(Hours), Median = median(Hours), SD = sd(Hours),
+            Min = min(Hours), Max = max(Hours))
+```
+
+**(a) Choose your own graphs to compare the distributions of the two samples.**
+
+I will compare the two samples with side-by-side boxplots and with dodged histograms.
+
+```{r}
+#| label: Q3a
+ggplot(bulbs, aes(x = Type, y = Hours, fill = Type)) +
+  geom_boxplot() +
+  labs(title = "Boxplots of lightbulb lifetimes",
+       x = "Type of bulb", y = "Lifetime (hours)")
+
+ggplot(bulbs, aes(x = Hours, fill = Type)) +
+  geom_histogram(position = "dodge", binwidth = 50) +
+  labs(title = "Histograms of lightbulb lifetimes",
+       x = "Lifetime (hours)", y = "Count")
+```
+
+**(b) Explain the differences in your own words and form a recommendation on the type of bulb the company should choose.**
+
+The two distributions have almost no overlap: every Type B bulb outlasted every Type A bulb. Sample B averages about 1942 hours (median 1939) against about 953 hours (median 954) for Sample A, so Type B bulbs last roughly 2.04 times longer. The spreads are fairly similar in absolute terms (SD of about 15.7 hours for B versus 12.3 hours for A), and both distributions are unimodal and roughly symmetric, so the shapes are alike — B is essentially the same kind of distribution shifted up to about twice the lifetime. Because Type B costs exactly twice the price of Type A, the cost per hour of light is almost identical for the two types (A: 1/953 ≈ 0.00105 per hour; B: 2/1942 ≈ 0.00103 per hour), with B marginally cheaper per hour of light. I recommend the company choose **Sample B**: for essentially the same cost per hour of light it needs to be replaced only half as often, which means less maintenance labour and disruption, and it is slightly more consistent relative to its mean lifetime.
+
+**(c) Do the two types of light bulb have a similar distribution? That is, would the same model be appropriate, even if the parameters are different?**
+
+Yes. Both samples are unimodal and roughly symmetric (for each sample the mean and median are very close), with no strong skewness or outliers, and their spreads are similar in absolute hours. The only real difference is location: Type B's distribution sits at about twice the lifetime of Type A. So the same model (the same distribution family) would be appropriate for both types of bulb, just with different parameters — a much larger centre for Type B and a slightly larger spread.
+
+
+
+## Question 4: General Social Survey
+
+<!--- The next chunk downloads your data. Do NOT delete or alter this chunk. --->
+```{r}
+#| label: getGSS
+GSS = read.csv("https://R-Resources.massey.ac.nz/data/GSS/GSS26118.csv") 
+GSS |> head()
+```
+
+**(a) Choose any two demographic variables. Are these two variables independent of one another or associated somehow?**
+
+I chose **Age** (age group) and **Edu** (highest completed qualification). Per the codebook, Edu is coded: 1 = less than secondary school completion/NCEA L4, 2 = secondary school completion/NCEA L4, 3 = post-secondary school NCEA or diploma, 4 = Bachelor's degree or higher. To check for independence I compare the distribution of education within each age group: if Age and Edu are independent, the education distribution should be roughly the same for every age group.
+
+```{r}
+#| label: Question4
+# Counts for every Age x Edu combination
+age_edu = GSS |> group_by(Age, Edu) |>
+  summarise(n = n(), .groups = "drop")
+age_edu |> pivot_wider(names_from = Edu, values_from = n)
+
+# Distribution of education within each age group (proportions)
+age_edu |> group_by(Age) |>
+  mutate(Prop = round(n / sum(n), 3)) |>
+  select(Age, Edu, Prop) |>
+  pivot_wider(names_from = Edu, values_from = Prop)
+```
+
+Age and education are **associated**, not independent. The education distribution changes markedly with age: 75.1% of 15–24 year-olds have not completed secondary school (Edu = 1) compared with 24.1%–48.1% for the older age groups, while only 6.2% of the youngest group have a Bachelor's degree or higher (Edu = 4) compared with 32.3%–38.2% of 25–54 year-olds. If the two variables were independent, the education proportions would be about the same in every age group, and they clearly are not.
+
+**(b) Use the same approach to see if voting at the last general election is linked to ethnicity. N.B. You need to remove the people who were not eligible to vote.**
+
+I remove the people who were not eligible to vote, then compare the voting distribution within each ethnic group.
+
+```{r}
+#| label: Q4b
+GSS_voters = GSS |> filter(Voted != "Not Eligible")
+
+# Counts of voters and non-voters for each ethnic group
+vote_eth = GSS_voters |> group_by(Ethnicity, Voted) |>
+  summarise(n = n(), .groups = "drop")
+vote_eth |> pivot_wider(names_from = Voted, values_from = n)
+
+# Turnout (proportion who voted) within each ethnic group
+GSS_voters |> group_by(Ethnicity) |>
+  summarise(n = n(), n_voted = sum(Voted == "Yes"),
+            Turnout = round(n_voted / n, 3), .groups = "drop")
+
+ggplot(GSS_voters, aes(x = Ethnicity, fill = Voted)) +
+  geom_bar(position = "fill") +
+  labs(title = "Voting at the last general election by ethnicity",
+       x = "Ethnicity", y = "Proportion")
+```
+
+Voting is **linked** to ethnicity. After removing the 65 people who were not eligible, turnout was 0.905 for Pacific, 0.863 for Asian, 0.842 for European/Other and only 0.795 for Māori, a spread of about 11 percentage points. If voting were independent of ethnicity, the turnout proportions would be roughly equal across all ethnic groups, and they are not.
+
+**(c) Find the proportion of people who are deemed disabled for each gender and ethnicity combination. Tabulate these proportions, the number of survey respondents in each combined group, and the associated standard error for this proportion. Present a graph which displays the proportions and their associated standard errors.**
+
+For each Sex × Ethnicity combination I calculate the number of respondents (n), the number and proportion deemed disabled, and the standard error of the proportion, SE = √(p(1−p)/n).
+
+```{r}
+#| label: Q4c
+disab = GSS |>
+  group_by(Sex, Ethnicity) |>
+  summarise(n = n(),
+            n_disabled = sum(Disability == "Disabled"),
+            Prop = mean(Disability == "Disabled"),
+            SE = sqrt(Prop * (1 - Prop) / n),
+            .groups = "drop") |>
+  mutate(Prop = round(Prop, 3), SE = round(SE, 3))
+disab
+```
+
+```{r}
+#| label: Q4cgraph
+ggplot(disab, aes(x = Ethnicity, y = Prop, fill = Ethnicity)) +
+  geom_col() +
+  geom_errorbar(aes(ymin = Prop - SE, ymax = Prop + SE), width = 0.25) +
+  facet_wrap(vars(Sex)) +
+  labs(title = "Proportion deemed disabled by gender and ethnicity (+/- 1 SE)",
+       x = "Ethnicity", y = "Proportion disabled")
+```
+
+The proportion of people deemed disabled varies across the gender and ethnicity combinations, from 0.055 (Pacific males) up to 0.167 (Pacific females) among the well-sampled groups, with Asian respondents (0.152 for females, 0.158 for males) also above the other groups. The error bars show how much uncertainty there is in each estimate: the large European/Other groups have very small standard errors (about 0.012), while small groups such as Pacific females (n = 42) have standard errors around 0.058. The Gender Diverse combination is based on only n = 2 respondents, so its estimate (0.000) is too small a sample to be reliable and its standard error of 0 should not be taken at face value.
+
+
+
+## Question 5: Evaluation of Digital Scales
+
+<!--- The next chunk downloads your data. Do NOT delete or alter this chunk. --->
+```{r}
+#| label: getScales
+Scales = read.csv("https://R-Resources.massey.ac.nz/data/scales/scales26118.csv") |> glimpse()
+```
+
+**(a) Accuracy is a measure of biasedness and is calculated as the average of the sampled readings of an instrument minus the target reading that should have been seen. Contrast this with precision, which measures how consistent an instrument is in its readings. Precision is measured by the standard deviation of the readings. What is the accuracy and precision of each brand?**
+
+Each brand was tested with a 50g and a 100g benchmark weight on 25 sets of scales. Accuracy = average reading − target reading (measures bias), while precision = standard deviation of the readings (measures consistency).
+
+```{r}
+#| label: Question5
+scale_summary = data.frame(
+  Brand = c("A", "A", "B", "B"),
+  Target = c(50, 100, 50, 100),
+  Mean_reading = round(c(mean(Scales$A50), mean(Scales$A100),
+                         mean(Scales$B50), mean(Scales$B100)), 2),
+  Accuracy = round(c(mean(Scales$A50) - 50, mean(Scales$A100) - 100,
+                     mean(Scales$B50) - 50, mean(Scales$B100) - 100), 2),
+  Precision_SD = round(c(sd(Scales$A50), sd(Scales$A100),
+                         sd(Scales$B50), sd(Scales$B100)), 2)
+)
+scale_summary
+```
+
+**Brand A** has accuracy of −0.14g at the 50g target (it under-reads on average) and +0.04g at the 100g target, and its precision is a standard deviation of about 0.42g (50g) and 0.41g (100g). **Brand B** has accuracy of +0.22g at 50g and +0.30g at 100g (it consistently over-reads), and its precision is a standard deviation of about 0.61g (50g) and 0.72g (100g). So Brand A is both more accurate (its average readings sit much closer to the true targets) and more precise (its standard deviations are clearly smaller than Brand B's at both weights) at both benchmark weights.
+
+**(b) Form a recommendation on which brand should be purchased.**
+
+I recommend the university purchase **Brand A**. Brand A's readings are closer to the true weights (biases of only −0.14g and +0.04g compared with +0.22g and +0.30g for Brand B) and its readings are more consistent (standard deviations of about 0.41–0.42g compared with 0.61–0.72g for Brand B), so it is the better instrument on both criteria. Since Brand A is also the slightly cheaper of the two brands, there is no trade-off to consider: Brand A is more accurate, more precise, and cheaper.
+
+
+
+## End of assignment
